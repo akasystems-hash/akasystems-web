@@ -265,11 +265,10 @@
         <p class="mt-8 text-sm text-white/60">¿Prefieres escribir? <span class="select-all font-medium text-white">aml@akasystems.es</span></p>
       </div>
 
-      <form id="form-contacto" action="https://formsubmit.co/aml@akasystems.es" method="POST" class="min-w-0 rounded-xl bg-white p-7 text-ink-900 md:p-8" novalidate>
-        <input type="hidden" name="_subject" value="Nueva solicitud de auditoría gratuita">
-        <input type="hidden" name="_template" value="table">
-        <input type="hidden" name="_captcha" value="false">
-        <input type="hidden" name="_next" value="https://akasystems.es/?enviado=1#contacto">
+      <form id="form-contacto" class="min-w-0 rounded-xl bg-white p-7 text-ink-900 md:p-8" novalidate>
+        <input type="hidden" name="access_key" value="48d4f3ad-44bb-4ee0-adea-4762a17d272c">
+        <input type="hidden" name="subject" value="Nueva solicitud de auditoría gratuita">
+        <input type="hidden" name="from_name" value="Web AkaSystems">
         <h3 class="font-display text-xl font-semibold text-navy-900">O déjanos tus datos y te llamamos</h3>
         <div class="mt-6 grid gap-4">
           <label class="grid gap-1.5 text-sm font-medium" for="f-nombre">Nombre
@@ -289,7 +288,7 @@
             <span>Acepto la <a href="#" class="underline">política de privacidad</a>.</span>
           </label>
           <button type="submit" class="mt-2 rounded-md bg-signal-600 px-6 py-3.5 font-semibold text-white hover:bg-navy-800">Solicitar auditoría gratuita</button>
-          <input type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+          <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
           <p id="form-estado" class="text-sm" role="status"></p>
         </div>
       </form>
@@ -328,22 +327,33 @@
     setTimeout(() => document.getElementById('f-nombre').focus({ preventScroll: true }), 400);
   });
 
-  // Formulario: se envía a FormSubmit, que manda el correo a aml@akasystems.es y vuelve a la web
+  // Formulario: se envía con Web3Forms, que manda el correo a aml@akasystems.es
   const form = document.getElementById('form-contacto');
   const estado = document.getElementById('form-estado');
-  if (new URLSearchParams(location.search).has('enviado')) {
-    estado.textContent = 'Recibido. Te escribiremos en menos de 24 horas laborables.';
-    estado.className = 'text-sm text-emerald-700';
-  }
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
     if (!form.checkValidity()) {
-      e.preventDefault();
       estado.textContent = 'Revisa tu nombre, tu email y acepta la política de privacidad.';
       estado.className = 'text-sm text-red-700';
       return;
     }
+    const boton = form.querySelector('button[type=submit]');
+    boton.disabled = true;
     estado.textContent = 'Enviando…';
     estado.className = 'text-sm text-ink-600';
+    try {
+      const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Accept': 'application/json' }, body: new FormData(form) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.message);
+      estado.textContent = 'Recibido. Te escribiremos en menos de 24 horas laborables.';
+      estado.className = 'text-sm text-emerald-700';
+      form.reset();
+    } catch (err) {
+      estado.textContent = 'No se ha podido enviar. Escríbenos a aml@akasystems.es y te respondemos enseguida.';
+      estado.className = 'text-sm text-red-700';
+    } finally {
+      boton.disabled = false;
+    }
   });
 </script>
 </body>
