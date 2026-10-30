@@ -265,7 +265,11 @@
         <p class="mt-8 text-sm text-white/60">¿Prefieres escribir? <span class="select-all font-medium text-white">amine@akasystems.es</span></p>
       </div>
 
-      <form id="form-contacto" class="min-w-0 rounded-xl bg-white p-7 text-ink-900 md:p-8" novalidate>
+      <form id="form-contacto" action="https://formsubmit.co/amine@akasystems.es" method="POST" class="min-w-0 rounded-xl bg-white p-7 text-ink-900 md:p-8" novalidate>
+        <input type="hidden" name="_subject" value="Nueva solicitud de auditoría gratuita">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_next" value="https://akasystems.es/?enviado=1#contacto">
         <h3 class="font-display text-xl font-semibold text-navy-900">O déjanos tus datos y te llamamos</h3>
         <div class="mt-6 grid gap-4">
           <label class="grid gap-1.5 text-sm font-medium" for="f-nombre">Nombre
@@ -324,45 +328,22 @@
     setTimeout(() => document.getElementById('f-nombre').focus({ preventScroll: true }), 400);
   });
 
-  // Formulario: envía la solicitud por email a través de FormSubmit (sustituible por un webhook de n8n)
+  // Formulario: se envía a FormSubmit, que manda el correo a amine@akasystems.es y vuelve a la web
   const form = document.getElementById('form-contacto');
   const estado = document.getElementById('form-estado');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (new URLSearchParams(location.search).has('enviado')) {
+    estado.textContent = 'Recibido. Te escribiremos en menos de 24 horas laborables.';
+    estado.className = 'text-sm text-emerald-700';
+  }
+  form.addEventListener('submit', (e) => {
     if (!form.checkValidity()) {
+      e.preventDefault();
       estado.textContent = 'Revisa tu nombre, tu email y acepta la política de privacidad.';
       estado.className = 'text-sm text-red-700';
       return;
     }
-    const d = new FormData(form);
-    if (d.get('_honey')) return;
-    const boton = form.querySelector('button[type=submit]');
-    boton.disabled = true;
     estado.textContent = 'Enviando…';
     estado.className = 'text-sm text-ink-600';
-    try {
-      const r = await fetch('https://formsubmit.co/ajax/amine@akasystems.es', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          _subject: 'Nueva solicitud de auditoría gratuita',
-          _template: 'table',
-          Nombre: d.get('nombre'),
-          Email: d.get('email'),
-          'Empresa o sector': d.get('negocio'),
-          'Qué quiere automatizar': d.get('mensaje')
-        })
-      });
-      if (!r.ok) throw new Error(r.status);
-      estado.textContent = 'Recibido. Te escribiremos en menos de 24 horas laborables.';
-      estado.className = 'text-sm text-emerald-700';
-      form.reset();
-    } catch (err) {
-      estado.textContent = 'No se ha podido enviar. Escríbenos a amine@akasystems.es y te respondemos enseguida.';
-      estado.className = 'text-sm text-red-700';
-    } finally {
-      boton.disabled = false;
-    }
   });
 </script>
 </body>
