@@ -8,6 +8,6 @@ Vercel publica automáticamente cada cambio que se sube a la rama `main`. No hac
 
 ## Pendiente
 
-- Enlace de Calendly para el botón de auditoría (ahora abre un correo a amine@akasystems.es).
+- Enlace de Calendly para el botón de auditoría (ahora abre un correo a aml@akasystems.es).
 - Conectar el formulario a un webhook (n8n) para recibir los leads.
 - Páginas de Aviso legal, Privacidad y Cookies.
