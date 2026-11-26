@@ -34,6 +34,44 @@
   body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: rgba(255,255,255,.92); }
   a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
+<style>
+  /* ===== Asistente virtual (chat) ===== */
+  .aka-launcher { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); z-index: 70; display: inline-flex; align-items: center; gap: .6rem; border-radius: 9999px; background: var(--navy); color: #fff; padding: .85rem 1.15rem .85rem 1rem; font-weight: 600; font-size: .95rem; box-shadow: 0 12px 32px -10px rgba(11,33,71,.55); transition: transform .15s ease, background .15s ease; }
+  .aka-launcher:hover { background: #12305F; transform: translateY(-1px); }
+  .aka-launcher .aka-dot { width: .55rem; height: .55rem; border-radius: 9999px; background: #34D399; box-shadow: 0 0 0 3px rgba(52,211,153,.25); }
+  .aka-chat { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); z-index: 80; width: min(390px, calc(100vw - 32px)); height: min(620px, calc(100dvh - 32px)); display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; background: #fff; color: var(--ink); border: 1px solid #D9E1EE; box-shadow: 0 30px 70px -25px rgba(11,33,71,.5); }
+  @media (max-width: 520px) { .aka-chat { inset: 0; width: 100%; height: 100dvh; border-radius: 0; border: 0; } }
+  .aka-head { display: flex; align-items: center; gap: .75rem; padding: .9rem 1rem; background: var(--navy); color: #fff; padding-top: max(.9rem, env(safe-area-inset-top, 0px)); }
+  .aka-avatar { width: 2.25rem; height: 2.25rem; border-radius: 9999px; background: rgba(255,255,255,.1); display: grid; place-items: center; flex-shrink: 0; }
+  .aka-avatar img { height: 1.25rem; width: auto; }
+  .aka-head-txt { min-width: 0; flex: 1; line-height: 1.2; }
+  .aka-head-txt strong { display: block; font-family: Montserrat, ui-sans-serif, system-ui, sans-serif; font-size: .98rem; }
+  .aka-head-txt span { font-size: .78rem; color: rgba(255,255,255,.7); display: inline-flex; align-items: center; gap: .35rem; }
+  .aka-head-txt span::before { content: ""; width: .45rem; height: .45rem; border-radius: 9999px; background: #34D399; }
+  .aka-close { width: 2.25rem; height: 2.25rem; border-radius: 8px; display: grid; place-items: center; color: #fff; }
+  .aka-close:hover { background: rgba(255,255,255,.1); }
+  .aka-msgs { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: .6rem; background: var(--bg-soft); overscroll-behavior: contain; }
+  .aka-msg { max-width: 85%; padding: .65rem .85rem; border-radius: 14px; font-size: .95rem; line-height: 1.5; overflow-wrap: anywhere; white-space: normal; }
+  .aka-msg.bot { align-self: flex-start; background: #fff; border: 1px solid #E4EBF6; border-bottom-left-radius: 4px; }
+  .aka-msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .aka-msg.bot a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  .aka-typing { display: inline-flex; gap: 4px; align-items: center; }
+  .aka-typing i { width: 6px; height: 6px; border-radius: 9999px; background: #7E8BA3; animation: aka-b 1.2s infinite ease-in-out; }
+  .aka-typing i:nth-child(2) { animation-delay: .15s } .aka-typing i:nth-child(3) { animation-delay: .3s }
+  @keyframes aka-b { 0%,80%,100% { opacity: .3; transform: translateY(0) } 40% { opacity: 1; transform: translateY(-3px) } }
+  @media (prefers-reduced-motion: reduce) { .aka-typing i { animation: none } .aka-launcher { transition: none } }
+  .aka-chips { display: flex; flex-wrap: wrap; gap: .4rem; padding: 0 1rem .6rem; background: var(--bg-soft); }
+  .aka-chip { border: 1px solid rgba(31,95,214,.35); color: var(--accent); background: #fff; border-radius: 9999px; padding: .4rem .75rem; font-size: .85rem; font-weight: 500; }
+  .aka-chip:hover { background: #E4EDFD; }
+  .aka-form { display: flex; gap: .5rem; align-items: flex-end; padding: .75rem; border-top: 1px solid #E4EBF6; background: #fff; padding-bottom: max(.75rem, env(safe-area-inset-bottom, 0px)); }
+  .aka-form textarea { flex: 1; min-width: 0; resize: none; max-height: 7.5rem; border: 1px solid #D9E1EE; border-radius: 10px; padding: .6rem .75rem; font-size: 16px; line-height: 1.4; }
+  .aka-send { width: 2.75rem; height: 2.75rem; border-radius: 10px; background: var(--accent); color: #fff; display: grid; place-items: center; flex-shrink: 0; }
+  .aka-send:disabled { opacity: .5; }
+  .aka-legal { padding: 0 .9rem .6rem; font-size: .72rem; color: #7E8BA3; background: #fff; }
+  .aka-legal a { text-decoration: underline; }
+  .p-5 { padding: 1.25rem; } .ml-auto { margin-left: auto; } .w-full { width: 100%; }
+  .aka-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+</style>
 </head>
 <body>
 
@@ -258,40 +296,24 @@
         <p class="eyebrow text-gold-400">Auditoría gratuita</p>
         <h2 class="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">En 30 minutos sabrás qué puedes automatizar y cuánto tiempo vas a recuperar.</h2>
         <p class="mt-5 text-lg leading-relaxed text-white/75">Una videollamada para conocer tu negocio. Sales con ideas concretas, sin compromiso y sin jerga técnica.</p>
-        <a href="#form-contacto" id="cta-auditoria" class="mt-8 inline-flex items-center gap-2 rounded-md bg-white px-6 py-3.5 font-semibold text-navy-900 hover:bg-signal-100">
-          Pedir mi auditoría
+        <a href="#contacto" id="cta-auditoria" class="mt-8 inline-flex items-center gap-2 rounded-md bg-white px-6 py-3.5 font-semibold text-navy-900 hover:bg-signal-100">
+          Pedir mi auditoría en el chat
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </a>
         <p class="mt-8 text-sm text-white/60">¿Prefieres escribir? <span class="select-all font-medium text-white">aml@akasystems.es</span></p>
       </div>
 
-      <form id="form-contacto" class="min-w-0 rounded-xl bg-white p-7 text-ink-900 md:p-8" novalidate>
-        <input type="hidden" name="access_key" value="48d4f3ad-44bb-4ee0-adea-4762a17d272c">
-        <input type="hidden" name="subject" value="Nueva solicitud de auditoría gratuita">
-        <input type="hidden" name="from_name" value="Web AkaSystems">
-        <h3 class="font-display text-xl font-semibold text-navy-900">O déjanos tus datos y te llamamos</h3>
-        <div class="mt-6 grid gap-4">
-          <label class="grid gap-1.5 text-sm font-medium" for="f-nombre">Nombre
-            <input id="f-nombre" name="nombre" required autocomplete="name" class="rounded-md border border-ink-200 px-3.5 py-3 text-base font-normal" placeholder="Tu nombre">
-          </label>
-          <label class="grid gap-1.5 text-sm font-medium" for="f-email">Email
-            <input id="f-email" name="email" type="email" required autocomplete="email" class="rounded-md border border-ink-200 px-3.5 py-3 text-base font-normal" placeholder="tu@empresa.com">
-          </label>
-          <label class="grid gap-1.5 text-sm font-medium" for="f-negocio">Empresa o sector
-            <input id="f-negocio" name="negocio" class="rounded-md border border-ink-200 px-3.5 py-3 text-base font-normal" placeholder="Ej. clínica dental en Madrid">
-          </label>
-          <label class="grid gap-1.5 text-sm font-medium" for="f-mensaje">¿Qué te gustaría dejar de hacer a mano?
-            <textarea id="f-mensaje" name="mensaje" rows="3" class="rounded-md border border-ink-200 px-3.5 py-3 text-base font-normal" placeholder="Ej. responder WhatsApps y agendar citas"></textarea>
-          </label>
-          <label class="flex items-start gap-2.5 text-sm text-ink-600" for="f-privacidad">
-            <input id="f-privacidad" name="privacidad" type="checkbox" required class="mt-0.5 h-4 w-4 accent-[#1F5FD6]">
-            <span>Acepto la <a href="/privacidad.html" class="underline" target="_blank" rel="noopener">política de privacidad</a>.</span>
-          </label>
-          <button type="submit" class="mt-2 rounded-md bg-signal-600 px-6 py-3.5 font-semibold text-white hover:bg-navy-800">Solicitar auditoría gratuita</button>
-          <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
-          <p id="form-estado" class="text-sm" role="status"></p>
+      <div class="min-w-0 rounded-xl bg-white p-7 text-ink-900 md:p-8">
+        <p class="eyebrow text-signal-600">Asistente virtual · responde al momento</p>
+        <h3 class="mt-3 font-display text-xl font-semibold text-navy-900">Cuéntanos tu caso en el chat</h3>
+        <p class="mt-3 leading-relaxed text-ink-600">Nuestro asistente te hace un par de preguntas sobre tu negocio, resuelve tus dudas y te reserva la auditoría gratuita. Sin formularios y a cualquier hora.</p>
+        <div class="mt-6 space-y-4 rounded-xl bg-signal-50 p-5 text-sm leading-relaxed" aria-hidden="true">
+          <p class="max-w-xl rounded-xl bg-white px-4 py-3 text-ink-900">Hola, soy el asistente de AkaSystems. ¿A qué se dedica tu negocio?</p>
+          <p class="ml-auto max-w-xl rounded-xl bg-signal-600 px-4 py-3 text-white">Tenemos una clínica y se nos escapan muchas llamadas.</p>
         </div>
-      </form>
+        <button type="button" data-abrir-chat class="mt-6 w-full rounded-md bg-signal-600 px-6 py-3.5 font-semibold text-white hover:bg-navy-800">Hablar con el asistente</button>
+        <p class="mt-3 text-center text-sm text-ink-600">Es un asistente automático; si lo prefieres, te pasa con una persona.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -310,6 +332,35 @@
   </div>
 </footer>
 
+<!-- ============ ASISTENTE VIRTUAL (chat conectado al cerebro de leads en n8n) ============ -->
+<button type="button" id="aka-launcher" class="aka-launcher" aria-controls="aka-chat" aria-expanded="false">
+  <span class="aka-dot" aria-hidden="true"></span>¿Hablamos?
+</button>
+<section id="aka-chat" class="aka-chat" role="dialog" aria-label="Asistente virtual de AkaSystems" hidden>
+  <div class="aka-head">
+    <span class="aka-avatar"><img id="aka-avatar-img" alt=""></span>
+    <div class="aka-head-txt"><strong>Asistente de AkaSystems</strong><span>Responde al momento</span></div>
+    <button type="button" id="aka-close" class="aka-close" aria-label="Cerrar chat">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div id="aka-msgs" class="aka-msgs" aria-live="polite"></div>
+  <div id="aka-chips" class="aka-chips">
+    <button type="button" class="aka-chip">Quiero un asistente de WhatsApp</button>
+    <button type="button" class="aka-chip">Necesito un CRM a medida</button>
+    <button type="button" class="aka-chip">Quiero la auditoría gratuita</button>
+  </div>
+  <form id="aka-form" class="aka-form" autocomplete="off">
+    <label for="aka-input" class="aka-hp">Tu mensaje</label>
+    <textarea id="aka-input" rows="1" maxlength="800" placeholder="Escribe tu mensaje…" required></textarea>
+    <input class="aka-hp" type="text" name="web" id="aka-web" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button type="submit" class="aka-send" aria-label="Enviar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </form>
+  <p class="aka-legal">Asistente automático. Al escribir aceptas la <a href="/privacidad.html" target="_blank" rel="noopener">política de privacidad</a>.</p>
+</section>
+
 <script>
   // Menú móvil
   const btn = document.getElementById('menu-btn');
@@ -320,41 +371,108 @@
   });
   menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); }));
 
-  // Botón de auditoría: lleva al formulario y pone el cursor en el primer campo
-  document.getElementById('cta-auditoria').addEventListener('click', (e) => {
-    e.preventDefault();
-    document.getElementById('form-contacto').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(() => document.getElementById('f-nombre').focus({ preventScroll: true }), 400);
-  });
+  // ===== Asistente virtual =====
+  // La web solo envía el mensaje a n8n; la clave de la IA nunca está en el navegador.
+  // n8n comprueba el dominio, limita abusos y pasa el mensaje al "Cerebro de leads".
+  (() => {
+    const ENDPOINT = 'https://n8n.akasystems.es/webhook/akasystems-chat';
+    const EMAIL = 'aml@akasystems.es';
+    const CLAVE = 'aka-chat-v1';
+    const CADUCA_MS = 7 * 24 * 3600 * 1000; // la conversación se olvida a los 7 días
+    const BIENVENIDA = '¡Hola! 👋 Soy el asistente de AkaSystems. Cuéntame a qué se dedica tu negocio y qué te gustaría dejar de hacer a mano, y vemos cómo podemos ayudarte.';
 
-  // Formulario: se envía con Web3Forms, que manda el correo a aml@akasystems.es
-  const form = document.getElementById('form-contacto');
-  const estado = document.getElementById('form-estado');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!form.checkValidity()) {
-      estado.textContent = 'Revisa tu nombre, tu email y acepta la política de privacidad.';
-      estado.className = 'text-sm text-red-700';
-      return;
-    }
-    const boton = form.querySelector('button[type=submit]');
-    boton.disabled = true;
-    estado.textContent = 'Enviando…';
-    estado.className = 'text-sm text-ink-600';
+    const panel = document.getElementById('aka-chat');
+    const lanzador = document.getElementById('aka-launcher');
+    const lista = document.getElementById('aka-msgs');
+    const chips = document.getElementById('aka-chips');
+    const form = document.getElementById('aka-form');
+    const input = document.getElementById('aka-input');
+    const trampa = document.getElementById('aka-web');
+    const enviar = form.querySelector('button[type=submit]');
+    const logo = document.querySelector('footer img');
+    if (logo) document.getElementById('aka-avatar-img').src = logo.src;
+
+    // Estado guardado en este navegador (si el navegador lo permite)
+    const nuevaSesion = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+    let estado = { sesion: nuevaSesion(), mensajes: [], fecha: Date.now() };
     try {
-      const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Accept': 'application/json' }, body: new FormData(form) });
-      const j = await r.json();
-      if (!j.success) throw new Error(j.message);
-      estado.textContent = 'Recibido. Te escribiremos en menos de 24 horas laborables.';
-      estado.className = 'text-sm text-emerald-700';
-      form.reset();
-    } catch (err) {
-      estado.textContent = 'No se ha podido enviar. Escríbenos a aml@akasystems.es y te respondemos enseguida.';
-      estado.className = 'text-sm text-red-700';
-    } finally {
-      boton.disabled = false;
-    }
-  });
+      const g = JSON.parse(localStorage.getItem(CLAVE) || 'null');
+      if (g && g.sesion && Date.now() - g.fecha < CADUCA_MS) estado = g;
+    } catch (e) {}
+    const guardar = () => { try { estado.fecha = Date.now(); localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) {} };
+
+    // Texto seguro: se escapa todo y solo se permite **negrita**, enlaces y saltos de línea
+    const formatear = (t) => {
+      const esc = t.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      return esc
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
+        .replace(/\n/g, '<br>');
+    };
+    const pintar = (quien, texto) => {
+      const p = document.createElement('div');
+      p.className = 'aka-msg ' + quien;
+      p.innerHTML = quien === 'bot' ? formatear(texto) : formatear(texto).replace(/<\/?(strong|a)[^>]*>/g, '');
+      lista.appendChild(p);
+      lista.scrollTop = lista.scrollHeight;
+      return p;
+    };
+    const iniciar = () => {
+      lista.innerHTML = '';
+      pintar('bot', BIENVENIDA);
+      estado.mensajes.forEach(m => pintar(m.quien, m.texto));
+      chips.hidden = estado.mensajes.length > 0;
+    };
+
+    const abrir = () => {
+      panel.hidden = false; lanzador.hidden = true; lanzador.setAttribute('aria-expanded', 'true');
+      if (!lista.children.length) iniciar();
+      setTimeout(() => input.focus(), 50);
+    };
+    const cerrar = () => { panel.hidden = true; lanzador.hidden = false; lanzador.setAttribute('aria-expanded', 'false'); lanzador.focus(); };
+    lanzador.addEventListener('click', abrir);
+    document.getElementById('aka-close').addEventListener('click', cerrar);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden) cerrar(); });
+    // Todos los botones de "auditoría gratuita" abren el chat
+    document.querySelectorAll('a[href="#contacto"], #cta-auditoria, [data-abrir-chat]').forEach(el => el.addEventListener('click', e => {
+      e.preventDefault();
+      const menu = document.getElementById('menu-movil');
+      if (menu && !menu.hidden) document.getElementById('menu-btn').click();
+      abrir();
+    }));
+
+    let ocupado = false;
+    const mandar = async (texto) => {
+      texto = texto.trim().slice(0, 800);
+      if (!texto || ocupado) return;
+      ocupado = true; enviar.disabled = true; chips.hidden = true;
+      pintar('user', texto);
+      estado.mensajes.push({ quien: 'user', texto }); guardar();
+      const escribiendo = pintar('bot', '');
+      escribiendo.innerHTML = '<span class="aka-typing" aria-label="Escribiendo"><i></i><i></i><i></i></span>';
+      let respuesta = '';
+      try {
+        // Formato de formulario: petición "simple" que el navegador envía sin consulta previa (CORS)
+        const cuerpo = new URLSearchParams({ sesion: estado.sesion, texto, pagina: location.href.slice(0, 300), web: trampa.value });
+        const ctrl = new AbortController();
+        const reloj = setTimeout(() => ctrl.abort(), 45000);
+        const r = await fetch(ENDPOINT, { method: 'POST', body: cuerpo, signal: ctrl.signal });
+        clearTimeout(reloj);
+        const j = await r.json().catch(() => ({}));
+        respuesta = j.respuesta || '';
+      } catch (e) {}
+      if (!respuesta) respuesta = 'Perdona, ahora mismo no puedo responderte. Escríbenos a ' + EMAIL + ' y te contestamos enseguida.';
+      escribiendo.innerHTML = formatear(respuesta);
+      lista.scrollTop = lista.scrollHeight;
+      estado.mensajes.push({ quien: 'bot', texto: respuesta }); guardar();
+      ocupado = false; enviar.disabled = false; input.focus();
+    };
+
+    form.addEventListener('submit', e => { e.preventDefault(); const t = input.value; input.value = ''; input.style.height = ''; mandar(t); });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
+    input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 120) + 'px'; });
+    chips.querySelectorAll('.aka-chip').forEach(c => c.addEventListener('click', () => mandar(c.textContent)));
+  })();
 </script>
 </body>
 </html>
